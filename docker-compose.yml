@@ -1,0 +1,84 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
+      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  springboot:
+    build: ./springboot
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRY_MS: ${JWT_ACCESS_EXPIRY_MS}
+      JWT_REFRESH_EXPIRY_MS: ${JWT_REFRESH_EXPIRY_MS}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      FASTAPI_BASE_URL: ${FASTAPI_BASE_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      EMAIL_VERIFICATION_ENABLED: ${EMAIL_VERIFICATION_ENABLED}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      SKILLOPT_MIN_TOTAL_SESSIONS: ${SKILLOPT_MIN_TOTAL_SESSIONS}
+      SKILLOPT_MIN_NEW_SESSIONS: ${SKILLOPT_MIN_NEW_SESSIONS}
+      SKILLOPT_MAX_VALIDATION_SIZE: ${SKILLOPT_MAX_VALIDATION_SIZE}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  fastapi:
+    build: ./fastapi
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      SPRINGBOOT_BASE_URL: http://springboot:8080
+      SKILLOPT_MIN_TOTAL_SESSIONS: ${SKILLOPT_MIN_TOTAL_SESSIONS}
+      SKILLOPT_MIN_NEW_SESSIONS: ${SKILLOPT_MIN_NEW_SESSIONS}
+      SKILLOPT_MAX_VALIDATION_SIZE: ${SKILLOPT_MAX_VALIDATION_SIZE}
+    depends_on:
+      springboot:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/internal/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      springboot:
+        condition: service_healthy
+      fastapi:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

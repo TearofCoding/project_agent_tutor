@@ -1,0 +1,27 @@
+services:
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  nginx:
+    # volumes array replaces (not appends) base — swaps nginx.conf with nginx.dev.conf
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+
+  springboot:
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      EMAIL_VERIFICATION_ENABLED: "false"
+      MAIL_HOST: mailhog
+      MAIL_PORT: "1025"
+      SKILLOPT_MIN_TOTAL_SESSIONS: "1"
+      SKILLOPT_MIN_NEW_SESSIONS: "1"
+      SKILLOPT_MAX_VALIDATION_SIZE: "5"
+
+  fastapi:
+    environment:
+      SKILLOPT_MIN_TOTAL_SESSIONS: "1"
+      SKILLOPT_MIN_NEW_SESSIONS: "1"
+      SKILLOPT_MAX_VALIDATION_SIZE: "5"

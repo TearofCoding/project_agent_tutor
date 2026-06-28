@@ -1,0 +1,11 @@
+logging:
+  level:
+    com.aitutor: DEBUG
+    org.springframework.web: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
