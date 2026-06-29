@@ -88,6 +88,11 @@ public class AuthService {
     }
 
     private AuthResponse issueTokens(User user) {
+        // revoke all active refresh tokens before issuing a new one
+        // prevents a previously stolen token from remaining valid across new logins
+        refreshTokenRepository.findAllByUserAndRevokedFalse(user)
+                .forEach(t -> t.setRevoked(true));
+
         String accessToken  = jwtTokenProvider.generateAccessToken(user);
         String refreshToken = jwtTokenProvider.generateRefreshToken();
 
