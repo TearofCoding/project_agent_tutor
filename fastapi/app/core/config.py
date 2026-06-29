@@ -13,6 +13,8 @@ class Settings:
     SKILLOPT_MIN_TOTAL_SESSIONS: int = int(os.getenv("SKILLOPT_MIN_TOTAL_SESSIONS", "1"))
     SKILLOPT_MIN_NEW_SESSIONS: int = int(os.getenv("SKILLOPT_MIN_NEW_SESSIONS", "1"))
     SKILLOPT_MAX_VALIDATION_SIZE: int = int(os.getenv("SKILLOPT_MAX_VALIDATION_SIZE", "5"))
+    TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY", "")
+    TAVILY_ENABLED: bool = os.getenv("TAVILY_ENABLED", "false").lower() == "true"
 
 
 settings = Settings()
