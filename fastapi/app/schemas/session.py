@@ -28,6 +28,7 @@ class AskPayload(BaseModel):
     weak_topics: list[str] = []
     goal: str | None = None
     interaction_count: int = 0
+    consecutive_wrong: int = 0
 
 
 class EndPayload(BaseModel):

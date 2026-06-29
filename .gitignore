@@ -22,3 +22,6 @@ springboot/.gradle/
 # OS
 .DS_Store
 Thumbs.db
+
+# Temp
+tmp/
